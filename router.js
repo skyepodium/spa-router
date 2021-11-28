@@ -1,58 +1,72 @@
 class Router {
     $routes = {}
 
-    render (url) {
-        this.$routes[url ? url : "/#/"]()
+    render (name) {
+        this.$routes[name]?.component()
     }
 
-    constructor() {
-        window.addEventListener('hashchange', e => {
-            this.render(`/#/${e.newURL.split("/#/")[1]}`);
+    add ({path, name, component}) {
+        this.$routes[name] = { 
+            path: `/#${path}`, 
+            component 
+        }
+        console.log(this.$routes)
+    }
+
+    push ({name, props}) {
+        this.render(name)
+    }
+
+    constructor({routes}) {
+        routes.forEach(item => {
+            this.add({...item})
         })
-        this.$routes = {}
-    }
-
-    add (url, component) {
-        this.$routes[url] = component
-    }
-
-    push (url) {
-        window.history.pushState({}, '', url)
-        this.render(url)
+        window.addEventListener('hashchange', e => {
+            console.log('e', e)
+            console.log('e', e.newURL.split("/#/")[1])
+            this.push({name: 'Detail'})
+        })
     }
 }
 
 class Main {
-    constructor(container) {
+    constructor($app) {
         const template = `
             <div>
                 <h1>Main</h1>
                 <a href="#/detail">detail</a>
             </div>
-        `;
-        container.innerHTML = template;
+        `
+        $app.innerHTML = template
     }    
 }
 
 class Detail {
-    constructor(container) {
+    constructor($app) {
         const template = `
             <div>
                 <h1>Detail</h1>
                 <a href="#/">main</a>
             </div>
-        `;
-        container.innerHTML = template;
+        `
+        $app.innerHTML = template
     }    
 }
 
+const routes = [
+    {
+        path: '/',
+        name: 'Main',
+        component: () => {return new Main($app)}
+    },
+    {
+        path: '/detail',
+        name: 'Detail',
+        component: () => {return new Detail($app)}
+    }
+]
 
-const router = new Router()
-const container = document.querySelector('#app');
+const router = new Router({routes})
+const $app = document.querySelector('#app');
 
-router.add('/#/', () => {return new Main(container)});
-router.add('/#/detail', () => {return new Detail(container)});
-
-router.push('/#/')
-
-const $el = document.querySelector('#detail')
+router.push({name: 'Main'})
